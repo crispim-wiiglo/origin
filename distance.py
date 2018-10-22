@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import newton
 from math import sqrt 
+import timeit
 
 """
 Code for return and plot the minimum distance from a point P(a,b) to a curve f(x) = 620.7x^-0.71
@@ -41,7 +42,7 @@ def fplot():
 	plt.plot(distance + P[0], distance + P[1],'-')
 	plt.plot([P[0]],[P[1]],marker = 'o',markersize = 3, color = 'red')
 	plt.plot([xmin],[f(xmin)],marker = 'o',markersize = 3, color = 'blue')
-	plt.axis([0, 600, 0, 200])
+	plt.axis([0, 300, 0, 300])
 	plt.grid(True)
 	plt.show()
 
@@ -88,7 +89,7 @@ f = lambda x: 620.7*x**-0.71
 f1 = lambda x: -0.71*620.7*x**-1.71
 dist1 = lambda x: x - P[0] + f1(x) * (f(x) - P[1])
 
-xmin = newton(dist1, x0 = 50, tol=10 ** -10, maxiter=20)
+xmin = newton(dist1, x0 = a, tol=10 ** -10, maxiter=50)
 distance = getDistance(P, (xmin, f(xmin)))
 
 print("xmin,fmin: ",xmin,f(xmin))
