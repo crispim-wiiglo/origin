@@ -3,7 +3,7 @@ url = 'https://geocoder.api.here.com/6.2/geocode.json'
 
 def getlocation(inputString):
 	data_input = inputString.replace(" ", "+")	
-	#data_input = inputString.split(",")
+	#data_input = inputString
 	
 	parameters= dict(
 		app_id = 'E5z0Y0Vq8dgBDYeQWcWx',
