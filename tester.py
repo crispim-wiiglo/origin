@@ -1,88 +1,131 @@
-from flask import Flask, request, jsonify
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from models import Base, Puppy
+import httplib2
+import sys
+import json
+print("aaaa")
+import sys
+import codecs
+print("aaaa")
 
+print("Running Endpoint Tester....\n")
+address = input("Please enter the address of the server you want to access, \n If left blank the connection will be set to 'http://localhost:5000':   ")
+if address == '':
+	address = 'http://localhost:5000'
+#TEST ONE -- CREATE NEW RESTAURANTS
+try:
+	print("Test 1: Creating new Restaurants......")
+	url = address + '/restaurants?location=Buenos+Aires+Argentina&food=Sushi'
+	h = httplib2.Http()
+	resp, result = h.request(url,'POST')
+	if resp['status'] != '200':
+		raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+	print(json.loads(result))
 
-engine = create_engine('sqlite:///puppies.db')
-Base.metadata.bind = engine
+	url = address + '/restaurants?location=Denver+Colorado&food=Soup'
+	h = httplib2.Http()
+	resp, result = h.request(url,'POST')
+	if resp['status'] != '200':
+		raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+	print(json.loads(result))
 
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
+	url = address + '/restaurants?location=Prague+Czech+Republic&food=Crepes'
+	h = httplib2.Http()
+	resp, result = h.request(url,'POST')
+	if resp['status'] != '200':
+		raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+	print(json.loads(result))
 
-app = Flask(__name__) 
+	url = address + '/restaurants?location=Shanghai+China&food=Sandwiches'
+	h = httplib2.Http()
+	resp, result = h.request(url,'POST')
+	if resp['status'] != '200':
+		raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+	print(json.loads(result))
 
-# Create the appropriate app.route functions, 
-#test and see if they work
+	url = address + '/restaurants?location=Nairobi+Kenya&food=Pizza'
+	h = httplib2.Http()
+	resp, result = h.request(url,'POST')
+	if resp['status'] != '200':
+		raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+	print(json.loads(result))
 
+except Exception as err:
+	print("Test 1 FAILED: Could not add new restaurants")
+	print(err.args)
+	sys.exit()
+else:
+	print("Test 1 PASS: Succesfully Made all new restaurants")
 
-#Make an app.route() decorator here
-@app.route("/")
-@app.route("/puppies", methods = ['GET', 'POST'])
-def puppiesFunction():
-  if request.method == 'GET':
-    #Call the method to Get all of the puppies
-    return getAllPuppies()
-  elif request.method == 'POST':
-    #Call the method to make a new puppy
-    print("Making a New puppy")
-    
-    name = request.args.get('name', 'maico')
-    description = request.args.get('description', 'beautiful doge')
-    print(name)
-    print(description)
-    return makeANewPuppy(name, description)
- 
-  
- 
-#Make another app.route() decorator here that takes in an integer id in the URI
-@app.route("/puppies/<int:id>", methods = ['GET', 'PUT', 'DELETE'])
-#Call the method to view a specific puppy
-def puppiesFunctionId(id):
-  if request.method == 'GET':
-    return getPuppy(id)
-    
-#Call the method to edit a specific puppy  
-  elif request.method == 'PUT':
-    name = request.args.get('name', '')
-    description = request.args.get('description', '')
-    return updatePuppy(id,name, description)
-    
- #Call the method to remove a puppy 
-  elif request.method == 'DELETE':
-    return deletePuppy(id)
+#TEST TWO -- READ ALL RESTAURANTS
+try:
+	print("Attempting Test 2: Reading all Restaurants...")
+	url = address + "/restaurants"
+	h = httplib2.Http()
+	resp, result = h.request(url,'GET')
+	if resp['status'] != '200':
+		raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+	all_result = json.loads(result)
+	print(result)
 
-def getAllPuppies():
-  puppies = session.query(Puppy).all()
-  return jsonify(Puppies=[i.serialize for i in puppies])
+except Exception as err:
+	print("Test 2 FAILED: Could not retrieve restaurants from server")
+	print(err.args)
+	sys.exit()
+else:
+	print("Test 2 PASS: Succesfully read all restaurants")
+#TEST THREE -- READ A SPECIFIC RESTAURANT
+	try:
+		print("Attempting Test 3: Reading the last created restaurant...")
+		result = all_result
+		restID = result['restaurants'][len(result['restaurants'])-1]['id']
+		url = address + "/restaurants/%s" % restID
+		h = httplib2.Http()
+		resp, result = h.request(url,'GET')
+		if resp['status'] != '200':
+			raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+		print(json.loads(result))
 
-def getPuppy(id):
-  puppy = session.query(Puppy).filter_by(id = id).one()
-  return jsonify(puppy=puppy.serialize) 
-  
-def makeANewPuppy(name,description):
-  puppy = Puppy(name = name, description = description)
-  session.add(puppy)
-  session.commit()
-  return jsonify(Puppy=puppy.serialize)
+	except Exception as err:
+		print("Test 3 FAILED: Could not retrieve restaurant from server")
+		print(err.args)
+		sys.exit()
+	else:
+		print("Test 3 PASS: Succesfully read last restaurant")
 
-def updatePuppy(id,name, description):
-  puppy = session.query(Puppy).filter_by(id = id).one()
-  if not name:
-    puppy.name = name
-  if not description:
-    puppy.description = description
-  session.add(puppy)
-  session.commit()
-  return "Updated a Puppy with id %s" % id
+#TEST FOUR -- UPDATE A SPECIFIC RESTAURANT
+	try:
+		print("Attempting Test 4: Changing the name, image, and address of the first) restaurant to Udacity...")
+		result = all_result
+		restID = result['restaurants'][0]['id']
+		url = address + "/restaurants/%s?name=Udacity&address=2465+Latham+Street+Mountain+View+CA&image=https://media.glassdoor.com/l/70/82/fc/e8/students-first.jpg" % restID
+		h = httplib2.Http()
+		resp, result = h.request(url,'PUT')
+		if resp['status'] != '200':
+			raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+		print(json.loads(result))
 
-def deletePuppy(id):
-  puppy = session.query(Puppy).filter_by(id = id).one()
-  session.delete(puppy)
-  session.commit()
-  return "Removed Puppy with id %s" % id
+	except Exception as err:
+		print("Test 4 FAILED: Could not update restaurant from server")
+		print(err.args)
+		sys.exit()
+	else:
+		print("Test 4 PASS: Succesfully updated first restaurant")
 
+#TEST FIVE -- DELETE SECOND RESTARUANT 
+try:
+		print("Attempting Test 5: Deleteing the second restaurant from the server...")
+		result = all_result
+		restID = result['restaurants'][1]['id']
+		url = address + "/restaurants/%s" % restID
+		h = httplib2.Http()
+		resp, result = h.request(url,'DELETE')
+		if resp['status'] != '200':
+			raise Exception('Received an unsuccessful status code of %s' % resp['status'])
+		print(result)
 
-if __name__ == '__main__':
-    app.debug = False
-    app.run(host='0.0.0.0', port=5000)	
+except Exception as err:
+	print("Test 5 FAILED: Could not delete restaurant from server")
+	print(err.args)
+	sys.exit()
+else:
+	print("Test 5 PASS: Succesfully updated first restaurant")
+	print("ALL TESTS PASSED!")
